@@ -1,37 +1,39 @@
 import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { useSendMessageMutation } from "@/service/chat/mutations";
+import type { MessageResponse } from "@/service/chat/types";
 
 // Mocked data for AI response
-const MOCK_AI_RESPONSE = {
-  summary:
-    "Com base na sua consulta sobre 'evasao de estudantes', analisei os anais do EMPRAD e encontrei 3 artigos relevantes publicados entre 2022 e 2023.\n\nSíntese da descoberta: A análise dos artigos revela tendências convergentes sobre inovação, gestão, empresas brasileiras no contexto empresarial brasileiro. Os estudos demonstram a interconexão desses temas e sua relevância para o desenvolvimento de negócios mais competitivos e sustentáveis no atual cenário econômico e social.\n\nMetodologias empregadas: Os estudos analisados utilizaram predominantemente métodos qualitativos (estudos de caso e entrevistas em profundidade), combinados com análises quantitativas de dados secundários, o que permite compreender tanto as particularidades dos casos estudados quanto estabelecer correlações estatisticamente significativas entre variáveis de interesse.\n\nImplicações e recomendações: Os estudos sugerem que gestores e empreendedores devem desenvolver competências adaptativas e visão sistêmica para navegar com sucesso em ambientes de negócios cada vez mais voláteis e interconectados. A literatura recomenda a adoção de práticas colaborativas e o monitoramento contínuo do ambiente competitivo para identificar oportunidades de competitividade sustentável.",
-  references: [
-    {
-      title:
-        "Inovação em Práticas de Gestão: Um Estudo de Caso em Empresas Brasileiras",
-      authors: "Silva, M.A., Oliveira, J.C. (2022)",
-      snippet:
-        "Os resultados indicam que as práticas de inovação em gestão estão fortemente correlacionadas com o desempenho organizacional, especialmente em ambientes de alta competitividade.",
-      tags: ["inovação", "gestão", "empresas brasileiras"],
-    },
-    {
-      title:
-        "Metodologias Ágeis na Administração Pública: Desafios e Oportunidades",
-      authors: "Santos, F.R., Pereira, L.M., Costa, D.S. (2023)",
-      snippet:
-        "A implementação de metodologias ágeis na administração pública brasileira apresenta barreiras culturais significativas, mas demonstra potencial para melhorias na eficiência dos serviços públicos.",
-      tags: ["administração pública", "gestão pública", "ágeis"],
-    },
-    {
-      title:
-        "O Impacto do Trabalho Remoto na Produtividade e Bem-estar dos Colaboradores",
-      authors: "Mendes, A.P., Carvalho, S.T., Martins, J.R. (2022)",
-      snippet:
-        "O estudo revelou que 78% dos profissionais em regime de teletrabalho reportam aumento de produtividade, embora 42% tenham indicado dificuldades relacionadas ao equilíbrio entre vida pessoal e profissional.",
-      tags: ["trabalho remoto", "produtividade", "bem-estar"],
-    },
-  ],
-};
+// const MOCK_AI_RESPONSE = {
+//   summary:
+//     "Com base na sua consulta sobre 'evasao de estudantes', analisei os anais do EMPRAD e encontrei 3 artigos relevantes publicados entre 2022 e 2023.\n\nSíntese da descoberta: A análise dos artigos revela tendências convergentes sobre inovação, gestão, empresas brasileiras no contexto empresarial brasileiro. Os estudos demonstram a interconexão desses temas e sua relevância para o desenvolvimento de negócios mais competitivos e sustentáveis no atual cenário econômico e social.\n\nMetodologias empregadas: Os estudos analisados utilizaram predominantemente métodos qualitativos (estudos de caso e entrevistas em profundidade), combinados com análises quantitativas de dados secundários, o que permite compreender tanto as particularidades dos casos estudados quanto estabelecer correlações estatisticamente significativas entre variáveis de interesse.\n\nImplicações e recomendações: Os estudos sugerem que gestores e empreendedores devem desenvolver competências adaptativas e visão sistêmica para navegar com sucesso em ambientes de negócios cada vez mais voláteis e interconectados. A literatura recomenda a adoção de práticas colaborativas e o monitoramento contínuo do ambiente competitivo para identificar oportunidades de competitividade sustentável.",
+//   references: [
+//     {
+//       title:
+//         "Inovação em Práticas de Gestão: Um Estudo de Caso em Empresas Brasileiras",
+//       authors: "Silva, M.A., Oliveira, J.C. (2022)",
+//       snippet:
+//         "Os resultados indicam que as práticas de inovação em gestão estão fortemente correlacionadas com o desempenho organizacional, especialmente em ambientes de alta competitividade.",
+//       tags: ["inovação", "gestão", "empresas brasileiras"],
+//     },
+//     {
+//       title:
+//         "Metodologias Ágeis na Administração Pública: Desafios e Oportunidades",
+//       authors: "Santos, F.R., Pereira, L.M., Costa, D.S. (2023)",
+//       snippet:
+//         "A implementação de metodologias ágeis na administração pública brasileira apresenta barreiras culturais significativas, mas demonstra potencial para melhorias na eficiência dos serviços públicos.",
+//       tags: ["administração pública", "gestão pública", "ágeis"],
+//     },
+//     {
+//       title:
+//         "O Impacto do Trabalho Remoto na Produtividade e Bem-estar dos Colaboradores",
+//       authors: "Mendes, A.P., Carvalho, S.T., Martins, J.R. (2022)",
+//       snippet:
+//         "O estudo revelou que 78% dos profissionais em regime de teletrabalho reportam aumento de produtividade, embora 42% tenham indicado dificuldades relacionadas ao equilíbrio entre vida pessoal e profissional.",
+//       tags: ["trabalho remoto", "produtividade", "bem-estar"],
+//     },
+//   ],
+// };
 
 function LoadingDots() {
   return (
@@ -46,15 +48,25 @@ function LoadingDots() {
 function ReferenceCard({
   refData,
 }: {
-  refData: (typeof MOCK_AI_RESPONSE.references)[0];
+  refData: MessageResponse["results"][0];
 }) {
   return (
     <div className="border rounded-lg p-4 mb-3 bg-card shadow-sm">
-      <div className="font-medium text-primary mb-1">{refData.title}</div>
-      <div className="text-xs text-muted-foreground mb-2">
-        {refData.authors}
+      <div className="font-medium text-primary mb-1">
+        {refData.metadata.title}
       </div>
-      <div className="text-sm mb-2">"{refData.snippet}"</div>
+      <a
+        href={refData.metadata.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={buttonVariants({ variant: "outline" })}
+      >
+        {refData.metadata.url}
+      </a>
+      {/* <div className="text-xs text-muted-foreground mb-2">
+        {refData.authors}
+      </div> */}
+      {/* <div className="text-sm mb-2">"{refData.snippet}"</div>
       <div className="flex flex-wrap gap-2">
         {refData.tags.map((tag) => (
           <span
@@ -64,7 +76,7 @@ function ReferenceCard({
             {tag}
           </span>
         ))}
-      </div>
+      </div> */}
     </div>
   );
 }
@@ -78,34 +90,48 @@ export default function ChatApp() {
     },
   ]);
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [aiAnswer, setAiAnswer] = useState<any>(null);
+  const [aiAnswer, setAiAnswer] = useState<MessageResponse | null>(null);
   const chatRef = useRef<HTMLDivElement>(null);
+
+  const { mutate: sendMessage, isPending } = useSendMessageMutation({
+    onMutate: () => {
+      setAiAnswer(null);
+    },
+    onSuccess: (data) => {
+      setAiAnswer(data);
+      setMessages((msgs) => [
+        ...msgs,
+        { role: "assistant", content: data.answer },
+      ]);
+    },
+    onError: () => {},
+  });
 
   useEffect(() => {
     if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
-  }, [messages, loading, aiAnswer]);
+  }, [messages, isPending, aiAnswer]);
 
   const handleSend = () => {
     if (!input.trim()) return;
+    sendMessage(input);
     setMessages((msgs) => [...msgs, { role: "user", content: input }]);
     setInput("");
-    setLoading(true);
     setAiAnswer(null);
-    setTimeout(() => {
-      setLoading(false);
-      setAiAnswer(MOCK_AI_RESPONSE);
-      setMessages((msgs) => [
-        ...msgs,
-        { role: "assistant", content: MOCK_AI_RESPONSE.summary },
-      ]);
-    }, 1800);
   };
+
+  // filter results that only show unique urls
+  const uniqueResults = aiAnswer?.results.filter(
+    (result, index, self) =>
+      index === self.findIndex((t) => t.metadata.url === result.metadata.url)
+  );
 
   return (
     <div className="max-w-2xl mx-auto min-h-screen flex flex-col bg-background">
+      <Button onClick={() => sendMessage("O que é educação financeira?")}>
+        Send
+      </Button>
       <div className="flex-1 flex flex-col p-4 overflow-y-auto" ref={chatRef}>
         {messages.map((msg, idx) => (
           <div
@@ -125,7 +151,7 @@ export default function ChatApp() {
             </div>
           </div>
         ))}
-        {loading && (
+        {isPending && (
           <div className="flex mb-4 justify-start">
             <div className="rounded-xl px-4 py-3 bg-muted text-muted-foreground max-w-[80%] shadow-sm flex items-center min-h-[2.5rem]">
               <LoadingDots />
@@ -138,7 +164,7 @@ export default function ChatApp() {
               Referências Encontradas
             </div>
             <div>
-              {aiAnswer.references.map((ref: any, i: number) => (
+              {uniqueResults?.map((ref, i) => (
                 <ReferenceCard key={i} refData={ref} />
               ))}
             </div>
@@ -157,9 +183,9 @@ export default function ChatApp() {
           placeholder="Pesquise nos 1585 artigos do EMPRAD..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          disabled={loading}
+          disabled={isPending}
         />
-        <Button type="submit" disabled={loading || !input.trim()}>
+        <Button type="submit" disabled={isPending || !input.trim()}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="20"
