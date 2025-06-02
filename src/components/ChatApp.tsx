@@ -104,7 +104,12 @@ export default function ChatApp() {
         { role: "assistant", content: data.answer },
       ]);
     },
-    onError: () => {},
+    onError: () => {
+      setMessages((msgs) => [
+        ...msgs,
+        { role: "assistant", content: "API fora do ar" },
+      ]);
+    },
   });
 
   useEffect(() => {
