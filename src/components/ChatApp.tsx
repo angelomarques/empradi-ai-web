@@ -129,9 +129,6 @@ export default function ChatApp() {
 
   return (
     <div className="max-w-2xl mx-auto min-h-screen flex flex-col bg-background">
-      <Button onClick={() => sendMessage("O que é educação financeira?")}>
-        Send
-      </Button>
       <div className="flex-1 flex flex-col p-4 overflow-y-auto" ref={chatRef}>
         {messages.map((msg, idx) => (
           <div
