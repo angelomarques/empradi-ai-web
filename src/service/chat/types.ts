@@ -1,10 +1,8 @@
 export type MessageResponse = {
   answer: string;
   results: {
-    metadata: {
-      title: string;
-      url: string;
-    };
-    text: string;
+    title: string;
+    url: string;
+    content: string;
   }[];
 };

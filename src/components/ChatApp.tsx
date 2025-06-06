@@ -53,15 +53,15 @@ function ReferenceCard({
   return (
     <div className="border rounded-lg p-4 mb-3 bg-card shadow-sm">
       <div className="font-medium text-primary mb-1">
-        {refData.metadata.title}
+        {refData.title}
       </div>
       <a
-        href={refData.metadata.url}
+        href={refData.url}
         target="_blank"
         rel="noopener noreferrer"
         className={buttonVariants({ variant: "outline" })}
       >
-        {refData.metadata.url}
+        {refData.url}
       </a>
       {/* <div className="text-xs text-muted-foreground mb-2">
         {refData.authors}
@@ -129,7 +129,7 @@ export default function ChatApp() {
   // filter results that only show unique urls
   const uniqueResults = aiAnswer?.results.filter(
     (result, index, self) =>
-      index === self.findIndex((t) => t.metadata.url === result.metadata.url)
+      index === self.findIndex((t) => t.url === result.url)
   );
 
   return (
